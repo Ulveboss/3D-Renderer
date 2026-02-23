@@ -16,16 +16,11 @@ class Camera {
         let pitch = cam.rot.x;
 
         let forward = createVector(
-            sin(yaw) * cos(pitch),
-            sin(pitch),
-            cos(yaw) * cos(pitch)
+            sin(cam.rot.y) * cos(cam.rot.x),
+            -sin(cam.rot.x),
+            cos(cam.rot.y) * cos(cam.rot.x)
         );
-
-let right = createVector(
-    cos(yaw),
-    0,
-    -sin(yaw)
-);
+        let right = createVector(cos(cam.rot.y), 0, -sin(cam.rot.y));
             
         if (keyIsDown(87)) this.pos.add(p5.Vector.mult(forward, speed)); // W
         if (keyIsDown(83)) this.pos.add(p5.Vector.mult(forward, -speed)); // S
