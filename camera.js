@@ -31,8 +31,9 @@ class Camera {
     }
 
     processRotation() {
-        cam.rot.y += movedX/width
-        cam.rot.x += movedY/width
+        let sens = 3
+        cam.rot.y += movedX/width * sens
+        cam.rot.x += movedY/width * sens
         cam.rot.x = constrain(cam.rot.x, -HALF_PI, HALF_PI);
     }
 }
