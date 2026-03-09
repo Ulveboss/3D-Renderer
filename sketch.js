@@ -19,30 +19,42 @@ function setup() {
   vertexes.push(createVector(50,50,100))// 6
   vertexes.push(createVector(50,0,100)) // 7
 
+
+  vertexes.push(createVector(200,200,225))
+  vertexes.push(createVector(250,200,200))
+  vertexes.push(createVector(250,200,250))
+  vertexes.push(createVector(225,250,225))
+  
+
   // Create triangles (each face = 2 triangles)
-  tris.push(new Tri(0,1,2,color(random(360),255,255)))
-  tris.push(new Tri(0,2,3,color(random(360),255,255)))
+  tris.push(new Tri(0,1,2))
+  tris.push(new Tri(0,2,3))
   
-  tris.push(new Tri(4,5,6,color(random(360),255,255)))
-  tris.push(new Tri(4,6,7,color(random(360),255,255)))
+  tris.push(new Tri(4,5,6))
+  tris.push(new Tri(4,6,7))
   
-  tris.push(new Tri(0,1,5,color(random(360),255,255)))
-  tris.push(new Tri(0,5,4,color(random(360),255,255)))
+  tris.push(new Tri(0,1,5))
+  tris.push(new Tri(0,5,4))
  
-  tris.push(new Tri(3,2,6,color(random(360),255,255)))
-  tris.push(new Tri(3,6,7,color(random(360),255,255)))
+  tris.push(new Tri(3,2,6))
+  tris.push(new Tri(3,6,7))
 
-  tris.push(new Tri(1,2,6,color(random(360),255,255)))
-  tris.push(new Tri(1,6,5,color(random(360),255,255)))
+  tris.push(new Tri(1,2,6))
+  tris.push(new Tri(1,6,5))
 
-  tris.push(new Tri(0,3,7,color(random(360),255,255)))
-  tris.push(new Tri(0,7,4,color(random(360),255,255)))
+  tris.push(new Tri(0,3,7))
+  tris.push(new Tri(0,7,4))
+
+  tris.push(new Tri(8,9,10))
+  tris.push(new Tri(8,9,11))
+  tris.push(new Tri(8,10,11))
+  tris.push(new Tri(9,10,11))
 
   cam = new Camera();
 }
 
 function draw() {
-  background(220);
+  background(0,0,50);
   loadPixels();
   push()
   translate(width / 2, height / 2);
@@ -57,11 +69,11 @@ function draw() {
 
 // Triangle class stores indices of 3 vertices
 class Tri {
-  constructor(a, b, c, color) {
+  constructor(a, b, c, col = color(random(360),255,255)) {
     this.a = a;
     this.b = b;
     this.c = c;
-    this.color = color
+    this.color = col
   }
 }
 
@@ -207,24 +219,31 @@ function rasterizeTriangle(p0, p1, p2, z0, z1, z2, color) {
   let c0 = p1.y*p2.x - p1.x*p2.y; 
   let c1 = p2.y*p0.x - p2.x*p0.y; 
   let c2 = p0.y*p1.x - p0.x*p1.y; 
-  for (let y = minY; y <= maxY; y++) {
-    for (let x = minX; x <= maxX; x++) {
 
-      let w0 = (x * dy12 - y * dx12) + c0;
-      let w1 = (x * dy20 - y * dx20) + c1;
-      let w2 = (x * dy01 - y * dx01) + c2;
+  let z0_ = 1/z0;
+  let z1_ = 1/z1;
+  let z2_ = 1/z2;
+
+  let w0_row = (minX * dy12 - minY * dx12) + c0;
+  let w1_row = (minX * dy20 - minY * dx20) + c1;
+  let w2_row = (minX * dy01 - minY * dx01) + c2;
+
+  let r = red(color);
+  let g = green(color);
+  let b = blue(color);
+  for (let y = minY; y <= maxY; y++) {
+    let w0 = w0_row;
+    let w1 = w1_row;
+    let w2 = w2_row;
+    for (let x = minX; x <= maxX; x++) {
 
       if ((w0 >= 0 && w1 >= 0 && w2 >= 0) || (w0 <= 0 && w1 <= 0 && w2 <= 0)) {
 
-        w0 /= area;
-        w1 /= area;
-        w2 /= area;
+        let bw0 = w0 / area;
+        let bw1 = w1 / area;
+        let bw2 = w2 / area;
 
-        z0_ = 1 / z0;
-        z1_ = 1 / z1;
-        z2_ = 1 / z2;
-
-        let invZ = w0 * z0_ + w1 * z1_ + w2 * z2_;
+        let invZ = bw0 * z0_ + bw1 * z1_ + bw2 * z2_;
 
         let z = 1 / invZ
 
@@ -237,11 +256,21 @@ function rasterizeTriangle(p0, p1, p2, z0, z1, z2, color) {
 
           zBuffer[index] = z;
 
-          setPixel(sx, sy, red(color), green(color), blue(color));
+          let i = index * 4;
+          pixels[i] = r;
+          pixels[i+1] = g;
+          pixels[i+2] = b;
+          pixels[i+3] = 100;
 
         }
       }
+      w0 += dy12;
+      w1 += dy20;
+      w2 += dy01;
     }
+    w0_row -= dx12;
+    w1_row -= dx20;
+    w2_row -= dx01;
   }
 }
 
@@ -249,18 +278,31 @@ function edge(a, b, x, y) {
   return (x - a.x) * (b.y - a.y) - (y - a.y) * (b.x - a.x);
 }
 
-function setPixel(sx, sy, r, g, b) {
-
-  if (sx < 0 || sx >= width || sy < 0 || sy >= height) return;
-
-  let i = (sx + sy * width) * 4;
-
-  pixels[i] = r;
-  pixels[i+1] = g;
-  pixels[i+2] = b;
-  pixels[i+3] = 255;
-}
 
 function doubleClicked() {
   requestPointerLock();
+}
+
+
+function mouseClicked() {
+  createVertex()
+}
+
+function createVertex(){
+  let t = Number(document.getElementById("dybde").value)
+
+  let cosY = cos(cam.rot.y), sinY = sin(cam.rot.y);
+  let cosX = cos(cam.rot.x), sinX = sin(cam.rot.x);
+
+  let forward = createVector(sinY*cosX, -sinX, cosX*cosY);
+
+  let vertex = p5.Vector.add(cam.pos, p5.Vector.mult(forward, t));
+
+  let v0 = vertex.copy();
+  let v1 = p5.Vector.add(vertex, createVector(10,0,0));
+  let v2 = p5.Vector.add(vertex, createVector(0,10,0));
+
+
+  vertexes.push(v0, v1, v2);
+  tris.push(new Tri(vertexes.length-3, vertexes.length-2, vertexes.length-1));
 }
