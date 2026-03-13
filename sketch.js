@@ -25,7 +25,6 @@ function setup() {
   vertexes.push(createVector(250,200,250))
   vertexes.push(createVector(225,250,225))
   
-
   // Create triangles (each face = 2 triangles)
   tris.push(new Tri(0,1,2))
   tris.push(new Tri(0,2,3))
@@ -299,10 +298,31 @@ function createVertex(){
   let vertex = p5.Vector.add(cam.pos, p5.Vector.mult(forward, t));
 
   let v0 = vertex.copy();
-  let v1 = p5.Vector.add(vertex, createVector(10,0,0));
-  let v2 = p5.Vector.add(vertex, createVector(0,10,0));
 
+  vertexes.push(v0);
+  
+  chooseVertex()
+}
 
-  vertexes.push(v0, v1, v2);
-  tris.push(new Tri(vertexes.length-3, vertexes.length-2, vertexes.length-1));
+function visualiseVertex() {
+
+}
+
+function chooseVertex() {
+  let cosY = cos(cam.rot.y), sinY = sin(cam.rot.y);
+  let cosX = cos(cam.rot.x), sinX = sin(cam.rot.x);
+
+  let forward = createVector(sinY*cosX, -sinX, cosX*cosY);
+  
+  for(let i = 0; i < vertexes.length; i++){
+    
+    let tx = (vertexes[i].x - cam.pos.x)/forward.x
+    let ty = (vertexes[i].y - cam.pos.y)/forward.y
+    let tz = (vertexes[i].z - cam.pos.z)/forward.z
+
+    if ((tx == ty) && (tx == tz) && (ty == tz)){
+      console.log('ding')
+    }
+  }
+
 }
