@@ -64,6 +64,10 @@ function draw() {
   pop()
   textSize(20)
   text(round(frameRate(),2),50,50)
+  push()
+  strokeWeight(12)
+  point(width / 2, height / 2)
+  pop()
 }
 
 // Triangle class stores indices of 3 vertices
@@ -288,7 +292,7 @@ function mouseClicked() {
 }
 
 function createVertex(){
-  let t = Number(document.getElementById("dybde").value)
+ let t = Number(document.getElementById("dybde").value)
 
   let cosY = cos(cam.rot.y), sinY = sin(cam.rot.y);
   let cosX = cos(cam.rot.x), sinX = sin(cam.rot.x);
@@ -311,18 +315,33 @@ function visualiseVertex() {
 function chooseVertex() {
   let cosY = cos(cam.rot.y), sinY = sin(cam.rot.y);
   let cosX = cos(cam.rot.x), sinX = sin(cam.rot.x);
+  let forward = createVector(sinY * cosX, -sinX, cosX * cosY);
 
-  let forward = createVector(sinY*cosX, -sinX, cosX*cosY);
-  
-  for(let i = 0; i < vertexes.length; i++){
-    
-    let tx = (vertexes[i].x - cam.pos.x)/forward.x
-    let ty = (vertexes[i].y - cam.pos.y)/forward.y
-    let tz = (vertexes[i].z - cam.pos.z)/forward.z
+  let closestIndex = -1;
+  let closestDist = Infinity;
+  let threshold = 5; // world-space units tolerance
 
-    if ((tx == ty) && (tx == tz) && (ty == tz)){
-      console.log('ding')
+  for (let i = 0; i < vertexes.length; i++) {
+    // Vector from camera to vertex
+    let toVertex = p5.Vector.sub(vertexes[i], cam.pos);
+
+    // Project onto forward ray
+    let t = toVertex.dot(forward);
+    if (t < 0) continue; // Behind the camera
+
+    // Closest point on ray to this vertex
+    let closestPointOnRay = p5.Vector.add(cam.pos, p5.Vector.mult(forward, t));
+
+    // Perpendicular distance from vertex to ray
+    let dist = p5.Vector.dist(vertexes[i], closestPointOnRay);
+
+    if (dist < threshold && dist < closestDist) {
+      closestDist = dist;
+      closestIndex = i;
     }
   }
 
+  if (closestIndex !== -1) {
+    console.log('Selected vertex index:', closestIndex);
+  }
 }
