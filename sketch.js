@@ -1,5 +1,8 @@
 let vertexes = [];
 let tris = [];
+let  chosenVertexes = [];
+let chosenMode = "Line";
+let building = true
 let cam;
 let zBuffer;
 
@@ -288,7 +291,9 @@ function doubleClicked() {
 
 
 function mouseClicked() {
-  createVertex()
+  if (building) createVertex()
+    else chooseVertex()
+  
 }
 
 function createVertex(){
@@ -305,11 +310,31 @@ function createVertex(){
 
   vertexes.push(v0);
   
-  chooseVertex()
+  // chooseVertex()
 }
 
 function visualiseVertex() {
 
+}
+
+function lineMode() {
+  if (chosenMode == "Line") return
+  chosenVertexes = []
+  chosenMode = "Line"
+}
+
+function trekantMode() {
+  if (chosenMode == "Trekant") return
+  chosenVertexes = []
+  chosenMode = "Trekant" 
+}
+
+function vertexMode() {
+  building = true
+}
+
+function chooseMode(){
+  building = false
 }
 
 function chooseVertex() {
@@ -342,6 +367,31 @@ function chooseVertex() {
   }
 
   if (closestIndex !== -1) {
+    chosenVertexes.push(closestIndex)
     console.log('Selected vertex index:', closestIndex);
+    // console.log(chosenVertexes)
   }
+
+  switch (chosenMode) {
+    case "Line":
+      console.log(chosenVertexes.length)
+      if (chosenVertexes.length < 2){
+        return
+      } else {
+        console.log('PLACEHOLDER, make a line')
+        chosenVertexes = []
+      }
+      break;
+    case "Trekant":
+      break;
+    case "Vertex": 
+      break;
+    case null:
+      alert("Choose a mode before selecting vertexes!")
+      chosenVertexes = []
+      break;
+    default:
+      console.log("Something went wrong :/")
+  }
+  
 }

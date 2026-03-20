@@ -13,8 +13,12 @@
   </head>
 
   <body>
-    <input type="range", id="dybde", name="Dybde", min="0", max ="100">
     <script src="camera.js"></script>
     <script src="sketch.js"></script>
+    <button type="button" onClick="lineMode()">Skift til at lave linjer</button>
+    <button type="button" onClick="trekantMode()">Skift til at lave trekanter</button>
+    <button type="button" onClick="vertexMode()">Skift til for at lave vertexes i stedet for at vælge</button>
+    <button type="button" onClick="chooseMode()">Skift til for at vælge i stedet for at lave vertexes</button>
+    <input type="range", id="dybde", name="Dybde", min="0", max ="100">
   </body>
 </html>
