@@ -5,6 +5,7 @@ let chosenMode = "Line";
 let building = true
 let cam;
 let zBuffer;
+let lines = [];
 
 function setup() {
   createCanvas(1000, 600);
@@ -73,6 +74,11 @@ function draw() {
   pop()
 }
 
+window.addEventListener("keydown",(e)=>{
+    if(e.code==="KeyK"){
+      requestPointerLock()
+    }
+  })
 // Triangle class stores indices of 3 vertices
 class Tri {
   constructor(a, b, c, col = color(random(360),255,255)) {
@@ -146,6 +152,34 @@ function render() {
         t.color
       );
     }
+    for (let l of lines) {
+  let verts = [vertexes[l.a], vertexes[l.b]];
+  let camVerts = verts.map(v => {
+    let p = p5.Vector.sub(v, cam.pos);
+    return { x: p.dot(right), y: p.dot(up), z: p.dot(forward) };
+  });
+
+  let cv0 = camVerts[0], cv1 = camVerts[1];
+  if (cv0.z < 0.1 && cv1.z < 0.1) continue;
+
+  // Clip to near plane
+  if (cv0.z < 0.1) {
+    let t = (0.1 - cv0.z) / (cv1.z - cv0.z);
+    cv0 = { x: cv0.x + (cv1.x - cv0.x) * t, y: cv0.y + (cv1.y - cv0.y) * t, z: 0.1 };
+  }
+  if (cv1.z < 0.1) {
+    let t = (0.1 - cv1.z) / (cv0.z - cv1.z);
+    cv1 = { x: cv1.x + (cv0.x - cv1.x) * t, y: cv1.y + (cv0.y - cv1.y) * t, z: 0.1 };
+  }
+
+  let s0 = focalLength / cv0.z;
+  let s1 = focalLength / cv1.z;
+
+  let p0 = { x: cv0.x * s0, y: -cv0.y * s0 };
+  let p1 = { x: cv1.x * s1, y: -cv1.y * s1 };
+
+  rasterizeLine(p0, p1, cv0.z, cv1.z, color(60, 255, 255));
+}
   }
 
 
@@ -374,13 +408,14 @@ function chooseVertex() {
 
   switch (chosenMode) {
     case "Line":
-      console.log(chosenVertexes.length)
-      if (chosenVertexes.length < 2){
-        return
+      if (chosenVertexes.length < 2) {
+        return;
       } else {
-        console.log('PLACEHOLDER, make a line')
-        chosenVertexes = []
-      }
+      let l = new Line(chosenVertexes[0], chosenVertexes[1]);
+      lines.push(l);
+      console.log('Line equation:', l.equation());
+      chosenVertexes = [];
+  }
       break;
     case "Trekant":
       break;
@@ -394,4 +429,46 @@ function chooseVertex() {
       console.log("Something went wrong :/")
   }
   
+}
+function rasterizeLine(p0, p1, z0, z1, col) {
+  let r = red(col), g = green(col), b = blue(col);
+
+  let x0 = floor(p0.x), y0 = floor(p0.y);
+  let x1 = floor(p1.x), y1 = floor(p1.y);
+
+  let dx = abs(x1 - x0), dy = abs(y1 - y0);
+  let sx = x0 < x1 ? 1 : -1;
+  let sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy;
+  let totalSteps = max(dx, dy);
+
+  for (let step = 0; step <= totalSteps; step++) {
+    // t along the line (0 at p0, 1 at p1)
+    let t = totalSteps === 0 ? 0 : step / totalSteps;
+
+    // Perspective-correct depth interpolation
+    let invZ = (1 - t) / z0 + t / z1;
+    let z = 1 / invZ;
+
+    let sx_ = floor(x0 + width / 2);
+    let sy_ = floor(y0 + height / 2);
+
+    if (sx_ >= 0 && sx_ < width && sy_ >= 0 && sy_ < height) {
+      let index = sx_ + sy_ * width;
+
+      if (z < zBuffer[index]) {
+        zBuffer[index] = z;
+        let i = index * 4;
+        pixels[i]     = r;
+        pixels[i + 1] = g;
+        pixels[i + 2] = b;
+        pixels[i + 3] = 255;
+      }
+    }
+
+    // Bresenham step
+    let e2 = 2 * err;
+    if (e2 > -dy) { err -= dy; x0 += sx; }
+    if (e2 <  dx) { err += dx; y0 += sy; }
+  }
 }
