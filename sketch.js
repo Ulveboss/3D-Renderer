@@ -75,10 +75,35 @@ function draw() {
 }
 
 window.addEventListener("keydown",(e)=>{
-    if(e.code==="KeyK"){
+    if(e.code==="KeyF"){
       requestPointerLock()
     }
+    if(e.code==="KeyL"){
+      building = false
+      lineMode()
+    }
+    if(e.code==="Enter"){
+      if (building) createVertex()
+      else chooseVertex()
+    }
+    if(e.code==="KeyQ"){
+      building = true
+    }
+    if(e.code==="KeyT"){
+      building = false
+      trekantMode()
+    }
   })
+
+  window.addEventListener("wheel", (e)=>{
+    let slider = document.getElementById("dybde")
+    if(e.deltaY < 0){
+      slider.valueAsNumber += 1
+    } else {
+      slider.value -= 1
+    }
+  })
+
 // Triangle class stores indices of 3 vertices
 class Tri {
   constructor(a, b, c, col = color(random(360),255,255)) {
@@ -152,7 +177,8 @@ function render() {
         t.color
       );
     }
-    for (let l of lines) {
+  }
+ for (let l of lines) {
   let verts = [vertexes[l.a], vertexes[l.b]];
   let camVerts = verts.map(v => {
     let p = p5.Vector.sub(v, cam.pos);
@@ -180,8 +206,82 @@ function render() {
 
   rasterizeLine(p0, p1, cv0.z, cv1.z, color(60, 255, 255));
 }
-  }
 
+// Collect used vertex indices
+let usedVertexes = new Set();
+for (let t of tris) {
+  usedVertexes.add(t.a);
+  usedVertexes.add(t.b);
+  usedVertexes.add(t.c);
+}
+for (let l of lines) {
+  usedVertexes.add(l.a);
+  usedVertexes.add(l.b);
+}
+
+for (let i = 0; i < vertexes.length; i++) {
+  if (usedVertexes.has(i)) continue;
+  let p = p5.Vector.sub(vertexes[i], cam.pos);
+  let camX = p.dot(right);
+  let camY = p.dot(up);
+  let camZ = p.dot(forward);
+
+  if (camZ < 0.1) continue;
+
+  let scale = focalLength / camZ;
+  let sx = floor(camX * scale + width / 2);
+  let sy = floor(-camY * scale + height / 2);
+
+  // Draw a small square dot (3x3 pixels)
+  for (let dy = -2; dy <= 2; dy++) {
+    for (let dx = -2; dx <= 2; dx++) {
+      let px = sx + dx;
+      let py = sy + dy;
+      if (px < 0 || px >= width || py < 0 || py >= height) continue;
+      let index = px + py * width;
+      if (camZ < zBuffer[index]) {
+        zBuffer[index] = camZ;
+        let i = index * 4;
+        pixels[i]     = 0;    // white in HSB
+        pixels[i + 1] = 0;
+        pixels[i + 2] = 255;
+        pixels[i + 3] = 255;
+      }
+    }
+  }
+}
+// Preview vertex placement in building mode
+if (building) {
+  let t = Number(document.getElementById("dybde").value);
+  let previewPos = p5.Vector.add(cam.pos, p5.Vector.mult(forward, t));
+
+  let p = p5.Vector.sub(previewPos, cam.pos);
+  let camX = p.dot(right);
+  let camY = p.dot(up);
+  let camZ = p.dot(forward);
+
+  if (camZ >= 0.1) {
+    let scale = focalLength / camZ;
+    let sx = floor(camX * scale + width / 2);
+    let sy = floor(-camY * scale + height / 2);
+
+    // Draw a larger distinct preview dot (cross shape)
+    for (let dy = -4; dy <= 4; dy++) {
+      for (let dx = -4; dx <= 4; dx++) {
+        if (abs(dx) > 1 && abs(dy) > 1) continue; // cross shape
+        let px = sx + dx;
+        let py = sy + dy;
+        if (px < 0 || px >= width || py < 0 || py >= height) continue;
+        let index = px + py * width;
+        let i = index * 4;
+        pixels[i]     = 30;   // green-yellow in HSB
+        pixels[i + 1] = 255;
+        pixels[i + 2] = 255;
+        pixels[i + 3] = 255;
+      }
+    }
+  }
+}
 
 
 }
@@ -325,8 +425,8 @@ function doubleClicked() {
 
 
 function mouseClicked() {
-  if (building) createVertex()
-    else chooseVertex()
+  // if (building) createVertex()
+    // else chooseVertex()
   
 }
 
@@ -347,9 +447,6 @@ function createVertex(){
   // chooseVertex()
 }
 
-function visualiseVertex() {
-
-}
 
 function lineMode() {
   if (chosenMode == "Line") return
@@ -418,6 +515,13 @@ function chooseVertex() {
   }
       break;
     case "Trekant":
+      if (chosenVertexes.length < 3){
+        return
+      } else {
+        let t = new Tri(chosenVertexes[0],chosenVertexes[1],chosenVertexes[2]);
+        tris.push(t)
+        chosenVertexes = []
+      }
       break;
     case "Vertex": 
       break;
