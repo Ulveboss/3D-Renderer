@@ -16,10 +16,17 @@
     <script src="camera.js"></script>
     <script src="lines.js"></script>
     <script src="sketch.js"></script>
-    <button type="button" onClick="lineMode()">Skift til at lave linjer</button>
-    <button type="button" onClick="trekantMode()">Skift til at lave trekanter</button>
-    <button type="button" onClick="vertexMode()">Skift til for at lave vertexes i stedet for at vælge</button>
-    <button type="button" onClick="chooseMode()">Skift til for at vælge i stedet for at lave vertexes</button>
+    <div id="canvas">
+    </div>
+    <!-- <button type="button" onClick="lineMode()">Skift til at lave linjer</button> -->
+    <!-- <button type="button" onClick="trekantMode()">Skift til at lave trekanter</button> -->
+    <!-- <button type="button" onClick="vertexMode()">Skift til for at lave vertexes i stedet for at vælge</button> -->
+    <!-- <button type="button" onClick="chooseMode()">Skift til for at vælge i stedet for at lave vertexes</button> -->
     <input type="range", id="dybde", name="Dybde", min="1", max ="100">
+    <p>Tryk på, F, for at låse musen på canvas</p>
+    <p>Tryk på, ENTER, for at enten sætte eller markere vertexes, alt efter valgt tilstand</p>
+    <p>Tryk på, Q, for at begynde at sætte vertexes</p>
+    <p>Tryk på, L, og dernæst to punkter for at forbinde dem med en linje</p>
+    <p>Tryk på, T, og dernæst tre punkter for at lave en trekant</p>
   </body>
 </html>

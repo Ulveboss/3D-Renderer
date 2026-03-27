@@ -1,6 +1,6 @@
 let vertexes = [];
 let tris = [];
-let  chosenVertexes = [];
+let chosenVertexes = [];
 let chosenMode = "Line";
 let building = true
 let cam;
@@ -8,7 +8,8 @@ let zBuffer;
 let lines = [];
 
 function setup() {
-  createCanvas(1000, 600);
+  let myCanvas = createCanvas(1000, 600);
+  myCanvas.parent('canvas')
   zBuffer = new Float32Array(width * height);
   pixelDensity(1);
   colorMode(HSB)
@@ -68,6 +69,7 @@ function draw() {
   pop()
   textSize(20)
   text(round(frameRate(),2),50,50)
+  text(chosenMode, 50,75)
   push()
   strokeWeight(12)
   point(width / 2, height / 2)
@@ -88,6 +90,7 @@ window.addEventListener("keydown",(e)=>{
     }
     if(e.code==="KeyQ"){
       building = true
+      chosenMode = "Building"
     }
     if(e.code==="KeyT"){
       building = false
@@ -241,11 +244,19 @@ for (let i = 0; i < vertexes.length; i++) {
       let index = px + py * width;
       if (camZ < zBuffer[index]) {
         zBuffer[index] = camZ;
-        let i = index * 4;
-        pixels[i]     = 0;    // white in HSB
-        pixels[i + 1] = 0;
-        pixels[i + 2] = 255;
-        pixels[i + 3] = 255;
+        let indi = index * 4;
+        if (chosenVertexes.includes(i)){
+        pixels[indi]     = 123;    
+        pixels[indi + 1] = 255;
+        pixels[indi + 2] = 255;
+        pixels[indi + 3] = 255;
+        } else {
+        pixels[indi]     = 0;    // white in HSB
+        pixels[indi + 1] = 0;
+        pixels[indi + 2] = 255;
+        pixels[indi + 3] = 255;
+        }
+        
       }
     }
   }
@@ -522,8 +533,6 @@ function chooseVertex() {
         tris.push(t)
         chosenVertexes = []
       }
-      break;
-    case "Vertex": 
       break;
     case null:
       alert("Choose a mode before selecting vertexes!")
