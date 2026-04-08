@@ -234,10 +234,11 @@ for (let i = 0; i < vertexes.length; i++) {
   let scale = focalLength / camZ;
   let sx = floor(camX * scale + width / 2);
   let sy = floor(-camY * scale + height / 2);
+  let size = Math.max(1, Math.floor(0.8 * (focalLength / camZ))); 
 
   // Draw a small square dot (3x3 pixels)
-  for (let dy = -2; dy <= 2; dy++) {
-    for (let dx = -2; dx <= 2; dx++) {
+  for (let dy = -size; dy <= size; dy++) {
+    for (let dx = -size; dx <= size; dx++) {
       let px = sx + dx;
       let py = sy + dy;
       if (px < 0 || px >= width || py < 0 || py >= height) continue;
