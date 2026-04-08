@@ -65,7 +65,11 @@ function draw() {
   cam.process();
   zBuffer.fill(Infinity);
   render();
+
   updatePixels();
+  pop()
+  push()
+  drawLineLabels()
   pop()
   textSize(20)
   text(round(frameRate(),2),50,50)
@@ -74,6 +78,43 @@ function draw() {
   strokeWeight(12)
   point(width / 2, height / 2)
   pop()
+  
+}
+
+function drawLineLabels() {
+  let cosY = cos(cam.rot.y), sinY = sin(cam.rot.y);
+  let cosX = cos(cam.rot.x), sinX = sin(cam.rot.x);
+  let right   = createVector(cosY, 0, -sinY);
+  let up      = createVector(sinY*sinX, cosX, cosY*sinX);
+  let forward = createVector(sinY*cosX, -sinX, cosX*cosY);
+
+  textSize(13);
+  textAlign(CENTER);
+  fill(60, 255, 255);
+  noStroke();
+
+  for (let l of lines) {
+    let mid = l.midpoint();
+    let p = p5.Vector.sub(mid, cam.pos);
+    let camX = p.dot(right);
+    let camY = p.dot(up);
+    let camZ = p.dot(forward);
+
+    if (camZ < 0.1) continue;
+
+    let scale = 300 / camZ;
+    let sx = camX * scale + width / 2;
+    let sy = -camY * scale + height / 2;
+
+     let px = floor(sx);
+    let py = floor(sy - 12); // same offset as text
+    if (px >= 0 && px < width && py >= 0 && py < height) {
+      let zAtLabel = zBuffer[px + py * width];
+      if (camZ > zAtLabel) continue; // something closer is in the way
+    }
+    fill(60, 255, 255);
+    text(l.equation(), sx, sy - 12);
+  }
 }
 
 window.addEventListener("keydown",(e)=>{
@@ -276,10 +317,11 @@ if (building) {
     let scale = focalLength / camZ;
     let sx = floor(camX * scale + width / 2);
     let sy = floor(-camY * scale + height / 2);
+    let size = Math.max(1, Math.floor(0.8 * (focalLength / camZ)));
 
     // Draw a larger distinct preview dot (cross shape)
-    for (let dy = -4; dy <= 4; dy++) {
-      for (let dx = -4; dx <= 4; dx++) {
+    for (let dy = -size; dy <= size; dy++) {
+      for (let dx = -size; dx <= size; dx++) {
         if (abs(dx) > 1 && abs(dy) > 1) continue; // cross shape
         let px = sx + dx;
         let py = sy + dy;
