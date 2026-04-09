@@ -14,7 +14,7 @@ function setup() {
   pixelDensity(1);
   colorMode(HSB)
 
-  // Create cube vertices
+  // lav cube
   vertexes.push(createVector(0,0,50))   // 0
   vertexes.push(createVector(0,50,50))  // 1
   vertexes.push(createVector(50,50,50)) // 2
@@ -30,7 +30,7 @@ function setup() {
   vertexes.push(createVector(250,200,250))
   vertexes.push(createVector(225,250,225))
   
-  // Create triangles (each face = 2 triangles)
+  // lav trekant
   tris.push(new Tri(0,1,2))
   tris.push(new Tri(0,2,3))
   
@@ -148,7 +148,7 @@ window.addEventListener("keydown",(e)=>{
     }
   })
 
-// Triangle class stores indices of 3 vertices
+
 class Tri {
   constructor(a, b, c, col = color(random(360),255,255)) {
     this.a = a;
@@ -168,15 +168,13 @@ function render() {
 
   let focalLength = 300;
 
-  // Prepare triangles with depth
-
   for (let t of tris) {
     let verts = [vertexes[t.a], vertexes[t.b], vertexes[t.c]];
     let projected = [];
     let camZs = [];
     let camVerts = [];
 
-    // Project each vertex
+    // For hver vertex
     for (let v of verts) {
   
       let p = p5.Vector.sub(v, cam.pos);
@@ -232,7 +230,7 @@ function render() {
   let cv0 = camVerts[0], cv1 = camVerts[1];
   if (cv0.z < 0.1 && cv1.z < 0.1) continue;
 
-  // Clip to near plane
+  // Clip hvis tæt på plane
   if (cv0.z < 0.1) {
     let t = (0.1 - cv0.z) / (cv1.z - cv0.z);
     cv0 = { x: cv0.x + (cv1.x - cv0.x) * t, y: cv0.y + (cv1.y - cv0.y) * t, z: 0.1 };
@@ -251,7 +249,7 @@ function render() {
   rasterizeLine(p0, p1, cv0.z, cv1.z, color(60, 255, 255));
 }
 
-// Collect used vertex indices
+
 let usedVertexes = new Set();
 for (let t of tris) {
   usedVertexes.add(t.a);
@@ -277,7 +275,7 @@ for (let i = 0; i < vertexes.length; i++) {
   let sy = floor(-camY * scale + height / 2);
   let size = Math.max(1, Math.floor(0.8 * (focalLength / camZ))); 
 
-  // Draw a small square dot (3x3 pixels)
+  // Render solo vertex
   for (let dy = -size; dy <= size; dy++) {
     for (let dx = -size; dx <= size; dx++) {
       let px = sx + dx;
@@ -303,7 +301,7 @@ for (let i = 0; i < vertexes.length; i++) {
     }
   }
 }
-// Preview vertex placement in building mode
+// Preview vertex
 if (building) {
   let t = Number(document.getElementById("dybde").value);
   let previewPos = p5.Vector.add(cam.pos, p5.Vector.mult(forward, t));
@@ -319,7 +317,6 @@ if (building) {
     let sy = floor(-camY * scale + height / 2);
     let size = Math.max(1, Math.floor(0.8 * (focalLength / camZ)));
 
-    // Draw a larger distinct preview dot (cross shape)
     for (let dy = -size; dy <= size; dy++) {
       for (let dx = -size; dx <= size; dx++) {
         if (abs(dx) > 1 && abs(dy) > 1) continue; // cross shape
@@ -497,8 +494,6 @@ function createVertex(){
   let v0 = vertex.copy();
 
   vertexes.push(v0);
-  
-  // chooseVertex()
 }
 
 
@@ -529,20 +524,18 @@ function chooseVertex() {
 
   let closestIndex = -1;
   let closestDist = Infinity;
-  let threshold = 5; // world-space units tolerance
+  let threshold = 5; // tolerance
 
   for (let i = 0; i < vertexes.length; i++) {
-    // Vector from camera to vertex
+    // vector fra camera til vertex
     let toVertex = p5.Vector.sub(vertexes[i], cam.pos);
 
-    // Project onto forward ray
+    // project
     let t = toVertex.dot(forward);
-    if (t < 0) continue; // Behind the camera
+    if (t < 0) continue; // behind the camera
 
-    // Closest point on ray to this vertex
     let closestPointOnRay = p5.Vector.add(cam.pos, p5.Vector.mult(forward, t));
 
-    // Perpendicular distance from vertex to ray
     let dist = p5.Vector.dist(vertexes[i], closestPointOnRay);
 
     if (dist < threshold && dist < closestDist) {
@@ -554,7 +547,6 @@ function chooseVertex() {
   if (closestIndex !== -1) {
     chosenVertexes.push(closestIndex)
     console.log('Selected vertex index:', closestIndex);
-    // console.log(chosenVertexes)
   }
 
   switch (chosenMode) {
@@ -599,10 +591,10 @@ function rasterizeLine(p0, p1, z0, z1, col) {
   let totalSteps = max(dx, dy);
 
   for (let step = 0; step <= totalSteps; step++) {
-    // t along the line (0 at p0, 1 at p1)
+    // t på linjen
     let t = totalSteps === 0 ? 0 : step / totalSteps;
 
-    // Perspective-correct depth interpolation
+    // depth
     let invZ = (1 - t) / z0 + t / z1;
     let z = 1 / invZ;
 
@@ -622,7 +614,6 @@ function rasterizeLine(p0, p1, z0, z1, col) {
       }
     }
 
-    // Bresenham step
     let e2 = 2 * err;
     if (e2 > -dy) { err -= dy; x0 += sx; }
     if (e2 <  dx) { err += dx; y0 += sy; }

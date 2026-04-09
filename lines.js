@@ -2,7 +2,7 @@ class Line {
   constructor(a, b) {
     this.a = a; // vertex index
     this.b = b;
-    // Compute and store the equation for display
+
     let A = vertexes[a];
     let B = vertexes[b];
     this.d = p5.Vector.sub(B, A); // direction vector
